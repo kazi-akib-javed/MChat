@@ -1,0 +1,158 @@
+<main class="d-flex flex-column vh-100 py-4">
+  <div class="container d-flex flex-column h-100">
+    <h3 class="mb-4 d-flex justify-content-between align-items-center">
+      MChat
+      <button (click)="logOut()" class="btn btn-outline-secondary btn-sm">
+        Log out
+      </button>
+      <button class="btn btn-link d-md-none align-self-start" (click)="onBack()">Back</button>
+    </h3>
+
+      <div class="container-fluid flex-grow-1 d-none d-md-block">
+        <div class="row h-100">
+          <!-- Section 1: Sidebar -->
+  
+          <div class="col-12 col-md-4 col-lg-3 border-end">
+            <app-user />
+          </div>
+  
+          <!-- Section 2: Chat box -->
+  
+          <div class="col-12 col-md-8 col-lg-9 d-flex flex-column">
+            <div class="card shadow-sm flex-grow-1 d-flex flex-column">
+              <!-- Chat body -->
+              <div
+                class="card-body overflow-auto"
+                style="max-height: 80vh; overflow-y: auto"
+              >
+                <div class="row">
+                  <div class="col-12">
+                    @for (msg of this.chats(); track msg) { @if(msg?.receiver ==
+                    this.receiverId){
+                    <div
+                      class="p-3 m-1"
+                      style="
+                        background-color: rgb(223, 253, 255);
+                        border-radius: 30px;
+                      "
+                    >
+                      {{ msg.text }}
+                    </div>
+                    } @else{
+                    <div
+                      class="p-3 m-1"
+                      style="
+                        background-color: rgb(222, 228, 255);
+                        border-radius: 30px;
+                      "
+                    >
+                      {{ msg.text }}
+                    </div>
+                    } } @empty {
+                    <div class="text-center text-muted my-4">
+                      No messages available!
+                    </div>
+                    }
+                  </div>
+                </div>
+              </div>
+  
+              <!-- Chat input -->
+              <form
+                [formGroup]="chatForm"
+                (ngSubmit)="onSubmit()"
+                class="border-top p-3"
+              >
+                <div class="input-group">
+                  <input
+                    formControlName="chat_message"
+                    type="text"
+                    class="form-control"
+                    placeholder="Type your message..."
+                  />
+                  <button [disabled]="!chatForm.valid" class="btn btn-primary">
+                    Send
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container-fluid flex-grow-1">
+        <div class="row h-100">
+          <!-- Section 1: Sidebar -->
+          
+          @if(!this.isSelectedChat){
+            <div class="col-12 col-md-4 col-lg-3 border-end d-block d-md-none">
+              <app-user />
+            </div>
+          }
+  
+          <!-- Section 2: Chat box -->
+          @if(this.isSelectedChat){
+            <div class="col-12 col-md-8 col-lg-9 d-flex flex-column d-block d-md-none">
+              <div class="card shadow-sm flex-grow-1 d-flex flex-column">
+                <!-- Chat body -->
+                <div
+                  class="card-body overflow-auto"
+                  style="max-height: 80vh; overflow-y: auto"
+                >
+                  <div class="row">
+                    <div class="col-12">
+                      @for (msg of this.chats(); track msg) { @if(msg?.receiver ==
+                      this.receiverId){
+                      <div
+                        class="p-3 m-1"
+                        style="
+                          background-color: rgb(223, 253, 255);
+                          border-radius: 30px;
+                        "
+                      >
+                        {{ msg.text }}
+                      </div>
+                      } @else{
+                      <div
+                        class="p-3 m-1"
+                        style="
+                          background-color: rgb(222, 228, 255);
+                          border-radius: 30px;
+                        "
+                      >
+                        {{ msg.text }}
+                      </div>
+                      } } @empty {
+                      <div class="text-center text-muted my-4">
+                        No messages available!
+                      </div>
+                      }
+                    </div>
+                  </div>
+                </div>
+    
+                <!-- Chat input -->
+                   <form
+                     [formGroup]="chatForm"
+                     (ngSubmit)="onSubmit()"
+                     class="border-top p-3"
+                   >
+                     <div class="input-group">
+                       <input
+                         formControlName="chat_message"
+                         type="text"
+                         class="form-control"
+                         placeholder="Type your message..."
+                       />
+                       <button [disabled]="!chatForm.valid" class="btn btn-primary">
+                         Send
+                       </button>
+                     </div>
+                   </form>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+  </div>
+</main>

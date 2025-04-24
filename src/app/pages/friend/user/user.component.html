@@ -1,0 +1,17 @@
+<ul class="list-group">
+    @for (user of this.users(); track user) {
+      <li class="list-group-item" (click)="onLoadChat(user.id)">
+        <div class="d-flex align-items-center">
+          <img
+            [src]="user?.avatar_url"
+            alt="User Avatar"
+            class="rounded-circle me-3"
+            width="40"
+            height="40"
+          />
+          <span>{{ user?.full_name }}</span>
+        </div>
+      </li>
+    }
+  </ul>
+  
