@@ -61,7 +61,7 @@ export class ChatService {
         }
       )
       .subscribe((status) => {
-        console.log("Subscription status:", status);
+        console.log("Subscription status:", status, channelName);
       });
   }
 
