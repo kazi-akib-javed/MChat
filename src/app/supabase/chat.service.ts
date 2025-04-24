@@ -55,6 +55,7 @@ export class ChatService {
         },
         (payload) => {
           this.listChat(receiverId); // Refresh chat list on change
+          this.allChats();
         }
       )
       .subscribe();
