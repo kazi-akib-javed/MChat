@@ -42,11 +42,11 @@ export class ChatService {
     }
   }
 
-  subscribeToChats(receiverId: string) {
-    console.log("Subscribing to chats for:", receiverId);
+  subscribeToChats(receiverId: string, senderId: string) {
 
+    //improvement if it's not worikng with other person then we need to add userid in channel name as well
     this.supabase
-      .channel(`chat-room-${receiverId}`)
+      .channel(`chat-room-${receiverId}-${senderId}`)//for adding receiver id each pair-pair channel is different
       .on(
         "postgres_changes",
         {
@@ -56,7 +56,6 @@ export class ChatService {
           filter: `receiver=eq.${receiverId}`, // test without this first
         },
         (payload) => {
-          console.log("New message received:", payload);
           this.listChat(receiverId);
         }
       )
@@ -70,7 +69,7 @@ export class ChatService {
       const {
         data: { user },
       } = await this.getCurrentUser();
-      const currentUserId = user?.id;
+      const currentUserId = user?.id as string;
       this.receiverId.set(receiverId);
       const { data, error } = await this.supabase
         .from("chats")
@@ -86,7 +85,7 @@ export class ChatService {
       }
       this.allChats.set(data);
 
-      this.subscribeToChats(receiverId);
+      this.subscribeToChats(receiverId,currentUserId);
       return data;
     } catch (error) {
       throw error;

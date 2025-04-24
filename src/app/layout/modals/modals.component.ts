@@ -55,7 +55,6 @@ export class ModalsComponent implements AfterViewInit, OnDestroy {
     this.chat_service
       .deleteChat(id)
       .then((res) => {
-        console.log(res);
         this.closeModal();
         // Auto reload the page after deletion
         let currentUrl = this.router.url;
