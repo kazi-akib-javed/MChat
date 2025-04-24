@@ -54,7 +54,7 @@ export class ChatService {
           event: "INSERT",
           schema: "public",
           table: "chats",
-          filter: `or(receiver=eq.${receiverId},sender=eq.${receiverId})`, // receive messages from or to receiver
+          filter: `or(receiver=eq.${receiverId},sender=eq.${senderId})`, // receive messages from or to receiver
         },
         (payload) => {
           this.listChat(receiverId);
