@@ -31,6 +31,9 @@ export class AuthService {
   async singInWithGoolge() {
     await this.supabase.auth.signInWithOAuth({
       provider: 'google',
+      options: {
+        redirectTo: window.location.origin  // dynamically picks the right URL
+      }
     });
   }
   async signOut() {
