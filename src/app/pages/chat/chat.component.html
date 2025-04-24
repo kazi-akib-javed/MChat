@@ -32,7 +32,7 @@
             >
               <div class="row">
                 <div class="col-12">
-                  @for (msg of this.chats(); track msg) { @if(msg?.receiver ==
+                  @for (msg of this.chats().reverse(); track msg) { @if(msg?.receiver ==
                   this.receiverId){
                   <div class="d-flex justify-content-end">
                     <div
@@ -116,7 +116,7 @@
             >
               <div class="row">
                 <div class="col-12">
-                  @for (msg of this.chats(); track msg) { @if(msg?.receiver ==
+                  @for (msg of this.chats().reverse(); track msg) { @if(msg?.receiver ==
                   this.receiverId){
                   <div class="d-flex justify-content-end">
                     <div
