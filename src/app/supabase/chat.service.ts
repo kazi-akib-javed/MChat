@@ -13,6 +13,8 @@ export class ChatService {
   public requestAction = signal<string>("");
   public receiverId = signal<string>("");
   public selectedChat = signal<boolean>(false);
+  private currentChannel: string | null = null;
+
   constructor() {
     this.supabase = createClient(
       environment.supabaseUrl,
@@ -30,7 +32,7 @@ export class ChatService {
       const receiver: string = this.receiverId();
       const { data, error } = await this.supabase
         .from("chats")
-        .insert({ text, receiver });
+        .insert({ text, receiver }); // sender is handled via Supabase policy
       if (error) {
         alert(error.message);
         return null;
@@ -42,36 +44,15 @@ export class ChatService {
     }
   }
 
-  subscribeToChats(receiverId: string, senderId: string) {
-    const sortedIds = [receiverId, senderId].sort(); // ensures consistency
-    const channelName = `chat-room-${sortedIds[0]}-${sortedIds[1]}`; // same for both users
-    //improvement if it's not worikng with other person then we need to add userid in channel name as well
-    this.supabase
-      .channel(channelName)//for adding receiver id each pair-pair channel is different
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "chats",
-          filter: `or(receiver=eq.${receiverId},sender=eq.${senderId})`, // receive messages from or to receiver
-        },
-        (payload) => {
-          this.listChat(receiverId);
-        }
-      )
-      .subscribe((status) => {
-        console.log("Subscription status:", status, channelName);
-      });
-  }
-
   async listChat(receiverId: string) {
     try {
       const {
         data: { user },
       } = await this.getCurrentUser();
       const currentUserId = user?.id as string;
+
       this.receiverId.set(receiverId);
+
       const { data, error } = await this.supabase
         .from("chats")
         .select("*")
@@ -80,17 +61,55 @@ export class ChatService {
         )
         .order("created_at", { ascending: false })
         .limit(10);
+
       if (error) {
         alert(error.message);
         return null;
       }
+
       this.allChats.set(data);
-      if(receiverId&&currentUserId)
-      this.subscribeToChats(receiverId,currentUserId);
+
+      // Only subscribe once
+      if (receiverId && currentUserId) {
+        this.subscribeToChats(receiverId, currentUserId);
+      }
+
       return data;
     } catch (error) {
       throw error;
     }
+  }
+
+  subscribeToChats(receiverId: string, senderId: string) {
+    const sortedIds = [receiverId, senderId].sort();
+    const channelName = `chat-room-${sortedIds[0]}-${sortedIds[1]}`;
+
+    // Avoid duplicate subscriptions
+    if (this.currentChannel === channelName) return;
+    this.currentChannel = channelName;
+
+    this.supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chats",
+        },
+        async (payload) => {
+          const message = payload.new;
+          const relevant =
+            (message['sender'] === senderId && message['receiver'] === receiverId) ||
+            (message['sender'] === receiverId && message['receiver'] === senderId);
+          if (relevant) {
+            await this.listChat(receiverId); // auto-refresh
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log("Subscription status:", status, channelName);
+      });
   }
 
   async listUser() {
@@ -103,10 +122,12 @@ export class ChatService {
         .from("users")
         .select("*")
         .neq("id", currentUserId);
+
       if (error) {
         alert(error.message);
         return null;
       }
+
       return data;
     } catch (error) {
       throw error;
@@ -127,10 +148,12 @@ export class ChatService {
         .from("chats")
         .delete()
         .eq("id", id);
+
       if (error) {
         alert(error.message);
         return null;
       }
+
       return data;
     } catch (error) {
       throw error;
@@ -141,17 +164,20 @@ export class ChatService {
     try {
       const receiver: string = this.receiverId();
       let res;
-      if(receiver){
+      if (receiver) {
         const { data, error } = await this.supabase
           .from("chats")
           .update({ text, receiver })
           .eq("id", this.savedChat().id);
+
         if (error) {
           alert(error.message);
           return null;
         }
+
         res = data;
       }
+
       return res;
     } catch (error) {
       throw error;
