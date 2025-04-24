@@ -1,10 +1,12 @@
 import { Injectable, signal } from "@angular/core";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { environment } from "../../env/env.dev";
-import { Ichat } from "../interface/chat-response";
+import { environment } from "../../../env/env.dev";
+import { Ichat } from "../../interface/chat-response";
+
+
 
 @Injectable({ providedIn: "root" })
-export class ChatService {
+export class ChatComponent {
   private supabase: SupabaseClient = createClient(
     environment.supabaseUrl,
     environment.supabaseKey
@@ -63,7 +65,7 @@ export class ChatService {
   async listChat(receiverId: string) {
     try {
       const user = await this.getCurrentUser();
-      const currentUserId = user?.id;
+      const currentUserId = user?.id as string;
       this.receiverId.set(receiverId);
 
       const { data, error } = await this.supabase
