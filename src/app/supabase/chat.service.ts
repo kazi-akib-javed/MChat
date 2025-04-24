@@ -43,10 +43,11 @@ export class ChatService {
   }
 
   subscribeToChats(receiverId: string, senderId: string) {
-
+    const sortedIds = [receiverId, senderId].sort(); // ensures consistency
+    const channelName = `chat-room-${sortedIds[0]}-${sortedIds[1]}`; // same for both users
     //improvement if it's not worikng with other person then we need to add userid in channel name as well
     this.supabase
-      .channel(`chat-room-${receiverId}-${senderId}`)//for adding receiver id each pair-pair channel is different
+      .channel(channelName)//for adding receiver id each pair-pair channel is different
       .on(
         "postgres_changes",
         {
