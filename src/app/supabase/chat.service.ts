@@ -43,23 +43,28 @@ export class ChatService {
   }
 
   subscribeToChats(receiverId: string) {
+    console.log('Subscribing to chats for:', receiverId);
+  
     this.supabase
       .channel('chat-room')
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'chats',
-          filter: `receiver=eq.${receiverId}`,
+          filter: `receiver=eq.${receiverId}`, // test without this first
         },
         (payload) => {
-          this.listChat(receiverId); // Refresh chat list on change
-          this.allChats();
+          console.log('New message received:', payload);
+          this.listChat(receiverId);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
   }
+  
 
   async listChat(receiverId: string) {
     try {
