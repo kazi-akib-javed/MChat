@@ -139,15 +139,19 @@ export class ChatService {
   async updateChatMessage(text: string) {
     try {
       const receiver: string = this.receiverId();
-      const { data, error } = await this.supabase
-        .from("chats")
-        .update({ text, receiver })
-        .eq("id", this.savedChat().id);
-      if (error) {
-        alert(error.message);
-        return null;
+      let res;
+      if(receiver){
+        const { data, error } = await this.supabase
+          .from("chats")
+          .update({ text, receiver })
+          .eq("id", this.savedChat().id);
+        if (error) {
+          alert(error.message);
+          return null;
+        }
+        res = data;
       }
-      return data;
+      return res;
     } catch (error) {
       throw error;
     }
