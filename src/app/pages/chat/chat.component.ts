@@ -1,113 +1,136 @@
-import {
-  Component,
-  computed,
-  effect,
-  HostListener,
-  inject,
-  signal,
-  ViewChild,
-} from '@angular/core';
-import { AuthService } from '../../services/auth.service';
-import { Router } from '@angular/router';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { ChatService } from '../../supabase/chat.service';
-import { Ichat } from '../../interface/chat-response';
-import { ModalsComponent } from '../../layout/modals/modals.component';
-import { Action } from '../../enum/action';
-import { UserComponent } from '../friend/user/user.component';
-import { IUser } from '../../interface/user-response';
+import { Injectable, signal } from "@angular/core";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { environment } from "../../env/env.dev";
+import { Ichat } from "../interface/chat-response";
 
-@Component({
-  selector: 'app-chat',
-  imports: [ReactiveFormsModule, UserComponent],
-  templateUrl: './chat.component.html',
-  styleUrl: './chat.component.scss',
-})
-export class ChatComponent {
-  private auth = inject(AuthService);
-  private router = inject(Router);
-  private fb = inject(FormBuilder);
-  private chat_service = inject(ChatService);
-  modalTitle: string = '';
-  modalMessage: string = '';
-  chats = signal<Ichat[]>([]);
-  chatForm!: FormGroup;
-  editChat: string = '';
-  isEditChat: boolean = false;
-  isSelectedChat: boolean = false;
-  receiverId: string = '';
+@Injectable({ providedIn: "root" })
+export class ChatService {
+  private supabase: SupabaseClient = createClient(
+    environment.supabaseUrl,
+    environment.supabaseKey
+  );
 
-  @ViewChild(ModalsComponent) modals!: ModalsComponent;
-  constructor() {
-    this.chatForm = this.fb.group({
-      chat_message: ['', Validators.required],
-    });
-    effect(() => {
-      this.receiverId = this.chat_service.receiverId();
-      const latestChats = this.chat_service.allChats();
-      this.chats.set(latestChats);
-      this.isSelectedChat = this.chat_service.selectedChat();
-    });
+  public savedChat = signal<Ichat>({} as Ichat);
+  public allChats = signal<Ichat[]>([]);
+  public requestAction = signal<string>("");
+  public receiverId = signal<string>("");
+  public selectedChat = signal<boolean>(false);
+
+  async getCurrentUser() {
+    const { data } = await this.supabase.auth.getUser();
+    return data?.user;
   }
 
-  async logOut() {
-    this.auth.signOut().then(() => {
-      this.router.navigate(['/login']);
-    });
-  }
-
-  async onSubmit() {
-    const formValue = this.chatForm.value.chat_message?.trim();
-    if (!formValue || !this.receiverId) return;
-
+  async sendMessage(text: string) {
     try {
-      if (this.isEditChat) {
-        await this.chat_service.updateChatMessage(formValue);
-        this.isEditChat = false; // Reset editing state
-      } else {
-        await this.chat_service.sendMessage(formValue);
-      }
-
-      this.chatForm.reset();
-      this.onListChat(); // Refresh chat list after operation
-    } catch (error) {
-      console.error('Chat submission failed:', error);
-      // Optionally show a toast or alert
+      const receiver = this.receiverId();
+      const { error } = await this.supabase
+        .from("chats")
+        .insert({ text, receiver }); // sender is auto-filled via RLS
+      if (error) throw error;
+    } catch (err: any) {
+      alert(err.message || err);
     }
   }
 
-  onBack(){
-    this.chat_service.selectedChat.set(false);
+  private getChannelName(user1: string, user2: string) {
+    const sorted = [user1, user2].sort();
+    return `chat-room-${sorted[0]}-${sorted[1]}`;
   }
 
-  onListChat () {
-    const chats = this.chat_service.allChats();
-    console.log(chats,'==');
-    if (chats) this.chats.set(chats);
+  subscribeToChats(receiverId: string, senderId: string) {
+    const channelName = this.getChannelName(receiverId, senderId);
+
+    this.supabase
+      .channel(channelName)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chats",
+          filter: `or(sender=eq.${senderId},receiver=eq.${senderId})`,
+        },
+        () => {
+          this.listChat(receiverId); // fetch updated list on insert
+        }
+      )
+      .subscribe((status) => {
+        console.log("Subscription:", status, "on", channelName);
+      });
   }
 
-  openModal(title: string, message: string) {
-    this.modals.openModal(title, message);
+  async listChat(receiverId: string) {
+    try {
+      const user = await this.getCurrentUser();
+      const currentUserId = user?.id;
+      this.receiverId.set(receiverId);
+
+      const { data, error } = await this.supabase
+        .from("chats")
+        .select("*")
+        .or(
+          `and(sender.eq.${receiverId},receiver.eq.${currentUserId}),and(sender.eq.${currentUserId},receiver.eq.${receiverId})`
+        )
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      if (error) throw error;
+
+      this.allChats.set(data);
+      this.subscribeToChats(receiverId, currentUserId);
+    } catch (error) {
+      console.error("List chat error:", error);
+    }
   }
 
-  selectedChat(msg: Ichat) {
-    this.chat_service.selectedChats(msg);
-    this.editChat = msg.text;
+  async listUser() {
+    try {
+      const user = await this.getCurrentUser();
+      const currentUserId = user?.id;
+      const { data, error } = await this.supabase
+        .from("users")
+        .select("*")
+        .neq("id", currentUserId);
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      alert(err);
+      return [];
+    }
   }
 
-  editMessage() {
-    this.chatForm.patchValue({
-      chat_message: this.chat_service.savedChat().text,
-    });
-    this.isEditChat = true;
+  selectedChats(msg: Ichat) {
+    this.savedChat.set(msg);
   }
 
-  deleteChatAction() {
-    this.chat_service.requestAction.set(Action.DELETE);
+  editChatAction(action: string) {
+    this.requestAction.set(action);
+  }
+
+  async deleteChat(id: string) {
+    try {
+      const { error } = await this.supabase
+        .from("chats")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    } catch (error) {
+      alert(error);
+    }
+  }
+
+  async updateChatMessage(text: string) {
+    try {
+      const id = this.savedChat().id;
+      const receiver = this.receiverId();
+      const { error } = await this.supabase
+        .from("chats")
+        .update({ text, receiver })
+        .eq("id", id);
+      if (error) throw error;
+    } catch (err) {
+      alert(err);
+    }
   }
 }
