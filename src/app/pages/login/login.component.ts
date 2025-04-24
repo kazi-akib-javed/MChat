@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
+import { environment } from '../../../env/env.dev';
 
 @Component({
   selector: 'app-login',
@@ -9,6 +10,9 @@ import { AuthService } from '../../services/auth.service';
   styleUrl: './login.component.scss',
 })
 export class LoginComponent {
+  constructor(){
+    console.log(environment.production);
+  }
   private auth = inject(AuthService);
   async handleAuth() {
     const response = await this.auth.singInWithGoolge();

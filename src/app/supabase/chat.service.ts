@@ -1,17 +1,17 @@
-import { Injectable, signal } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { environment } from '../../env/env.dev';
-import { Ichat } from '../interface/chat-response';
+import { Injectable, signal } from "@angular/core";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { environment } from "../../env/env.dev";
+import { Ichat } from "../interface/chat-response";
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: "root",
 })
 export class ChatService {
   private supabase!: SupabaseClient;
   public savedChat = signal<Ichat>({} as Ichat);
   public allChats = signal<Ichat[]>([]);
-  public requestAction = signal<string>('');
-  public receiverId = signal<string>('');
+  public requestAction = signal<string>("");
+  public receiverId = signal<string>("");
   public selectedChat = signal<boolean>(false);
   constructor() {
     this.supabase = createClient(
@@ -21,7 +21,7 @@ export class ChatService {
   }
 
   async getCurrentUser() {
-    const user = await this.supabase.auth.getUser().then(res=>res);
+    const user = await this.supabase.auth.getUser().then((res) => res);
     return user;
   }
 
@@ -29,7 +29,7 @@ export class ChatService {
     try {
       const receiver: string = this.receiverId();
       const { data, error } = await this.supabase
-        .from('chats')
+        .from("chats")
         .insert({ text, receiver });
       if (error) {
         alert(error.message);
@@ -43,28 +43,27 @@ export class ChatService {
   }
 
   subscribeToChats(receiverId: string) {
-    console.log('Subscribing to chats for:', receiverId);
-  
+    console.log("Subscribing to chats for:", receiverId);
+
     this.supabase
-      .channel('chat-room')
+      .channel(`chat-room-${receiverId}`)
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'chats',
+          event: "INSERT",
+          schema: "public",
+          table: "chats",
           filter: `receiver=eq.${receiverId}`, // test without this first
         },
         (payload) => {
-          console.log('New message received:', payload);
+          console.log("New message received:", payload);
           this.listChat(receiverId);
         }
       )
       .subscribe((status) => {
-        console.log('Subscription status:', status);
+        console.log("Subscription status:", status);
       });
   }
-  
 
   async listChat(receiverId: string) {
     try {
@@ -74,12 +73,13 @@ export class ChatService {
       const currentUserId = user?.id;
       this.receiverId.set(receiverId);
       const { data, error } = await this.supabase
-        .from('chats')
-        .select('*')
+        .from("chats")
+        .select("*")
         .or(
           `and(sender.eq.${receiverId},receiver.eq.${currentUserId}),and(sender.eq.${currentUserId},receiver.eq.${receiverId})`
         )
-        .order('created_at', { ascending: false }).limit(10);
+        .order("created_at", { ascending: false })
+        .limit(10);
       if (error) {
         alert(error.message);
         return null;
@@ -100,9 +100,9 @@ export class ChatService {
       } = await this.getCurrentUser();
       const currentUserId = user?.id;
       const { data, error } = await this.supabase
-        .from('users')
-        .select('*')
-        .neq('id', currentUserId);
+        .from("users")
+        .select("*")
+        .neq("id", currentUserId);
       if (error) {
         alert(error.message);
         return null;
@@ -124,9 +124,9 @@ export class ChatService {
   async deleteChat(id: string) {
     try {
       const { data, error } = await this.supabase
-        .from('chats')
+        .from("chats")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
       if (error) {
         alert(error.message);
         return null;
@@ -141,9 +141,9 @@ export class ChatService {
     try {
       const receiver: string = this.receiverId();
       const { data, error } = await this.supabase
-        .from('chats')
+        .from("chats")
         .update({ text, receiver })
-        .eq('id', this.savedChat().id);
+        .eq("id", this.savedChat().id);
       if (error) {
         alert(error.message);
         return null;
