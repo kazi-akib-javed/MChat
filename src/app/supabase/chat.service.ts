@@ -85,7 +85,7 @@ export class ChatService {
         return null;
       }
       this.allChats.set(data);
-
+      if(receiverId&&currentUserId)
       this.subscribeToChats(receiverId,currentUserId);
       return data;
     } catch (error) {
