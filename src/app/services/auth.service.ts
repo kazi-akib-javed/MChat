@@ -28,7 +28,7 @@ export class AuthService {
     const user = localStorage.getItem('session') as string;
     return user === 'undefined' || user === null ? false : true;
   }
-  async singInWithGoolge() {
+  async signInWithGoolge() {
     await this.supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

@@ -10,11 +10,9 @@ import { environment } from '../../../env/env.dev';
   styleUrl: './login.component.scss',
 })
 export class LoginComponent {
-  constructor(){
-    console.log(environment.production);
-  }
+  constructor(){}
   private auth = inject(AuthService);
   async handleAuth() {
-    const response = await this.auth.singInWithGoolge();
+    const response = await this.auth.signInWithGoolge();
   }
 }

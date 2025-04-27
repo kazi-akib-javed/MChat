@@ -1,0 +1,14 @@
+<div class="word-list">
+    <div *ngFor="let word of paginatedWords" class="word-item">
+      <h3>{{ word.word }}</h3>
+      <p><strong>Meaning:</strong> {{ word.meaning }}</p>
+      <p><em>Sentence:</em> {{ word.sentence }}</p>
+    </div>
+  </div>
+  
+  <div class="pagination-controls">
+    <button (click)="prevPage()" [disabled]="currentPage === 1">Previous</button>
+    <span>Page {{currentPage}} of {{(31)}}</span>
+    <button (click)="nextPage()" [disabled]="currentPage === (words.length / wordsPerPage)">Next</button>
+  </div>
+  
