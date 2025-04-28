@@ -2,7 +2,8 @@ export const barronWords = [
   {
     word: "Abate",
     meaning: "to lessen in intensity or amount",
-    sentence: "The storm finally began to abate after several hours of heavy rain"
+    sentence:
+      "The storm finally began to abate after several hours of heavy rain",
   },
   {
     word: "Aberrant",
@@ -15,6 +16,11 @@ export const barronWords = [
     sentence: "The project is in abeyance now.",
   },
   {
+    word: "Abhor",
+    meaning: "to regard with disgust and hatred",
+    sentence: "She abhors the idea of animal testing.",
+  },
+  {
     word: "Abscond",
     meaning: "run away secretly",
     sentence: "The thief tried to abscond at night.",
@@ -23,6 +29,18 @@ export const barronWords = [
     word: "Abstemious",
     meaning: "self-controlled, moderate",
     sentence: "He is abstemious in eating and drinking.",
+  },
+  {
+    word: "Abstruse",
+    meaning: "difficult to understand",
+    sentence:
+      "The professor’s lecture was so abstruse that many students struggled to keep up.",
+  },
+  {
+    word: "Accolade",
+    meaning: "an award or privilege granted as a special honor",
+    sentence:
+      "She received many accolades for her outstanding achievements in science.",
   },
   {
     word: "Admonish",

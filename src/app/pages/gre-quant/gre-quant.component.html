@@ -1,0 +1,21 @@
+<div class="container">
+    <div class="sidebar">
+      <h3>GRE Quant</h3>
+      <ul>
+        <li *ngFor="let category of categories">
+          <strong>{{ category.title }}</strong>
+          <ul>
+            <li *ngFor="let video of category.videos" (click)="selectVideo(video)">
+              {{ video.title }}
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  
+    <div class="video-player">
+      <h2>{{this.title}}</h2>
+      <video *ngIf="videoUrl" [src]="videoUrl" controls preload="metadata"></video>
+    </div>
+  </div>
+  

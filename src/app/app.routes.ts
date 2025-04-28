@@ -18,5 +18,9 @@ export const routes: Routes = [
     {
         path: 'barron',
         loadComponent: () => import('./pages/barron/barron.component').then(m => m.BarronComponent)
+    },
+    {
+        path: 'gre-quant',
+        loadComponent: () => import('./pages/gre-quant/gre-quant.component').then(m => m.GreQuantComponent)
     }
 ];

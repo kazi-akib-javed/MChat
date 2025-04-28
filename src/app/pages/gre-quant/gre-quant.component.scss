@@ -1,0 +1,51 @@
+.container {
+    display: flex;
+    height: 100vh;
+  }
+  
+  .sidebar {
+    width: 250px;
+    background-color: #f5f5f5;
+    padding: 20px;
+    overflow-y: auto;
+    border-right: 1px solid #ddd;
+  }
+  
+  .sidebar ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .sidebar > ul > li {
+    margin-bottom: 15px;
+  }
+  
+  .sidebar li strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1.1em;
+  }
+  
+  .sidebar ul ul li {
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .sidebar ul ul li:hover {
+    background-color: #ddd;
+  }
+  
+  .video-player {
+    flex: 1;
+    padding: 20px;
+    margin: 3rem;
+    justify-content: center;
+  }
+  
+  video {
+    width: 70%;
+    height: auto;
+    max-height: 80vh;
+  }
+  
